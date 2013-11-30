@@ -1,71 +1,66 @@
 package cl.telematica.databaseexample;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import cl.telematica.databaseexample.adapters.RssAdapter;
+import cl.telematica.databaseexample.adapters.RssAdapter_details;
+import cl.telematica.databaseexample.database.DataBaseClass;
+import cl.telematica.databaseexample.models.EarthQuakeDataModel;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Bitmap;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.view.View;
-import android.webkit.WebChromeClient;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 public class DetailsActivity extends Activity {
 	
 	private String url = null;
-	private WebView webView;
-	private ProgressBar mProgressBar;
-	private RelativeLayout hPBarLayout;
+	private ListView listView;
+	private List <EarthQuakeDataModel> list = new ArrayList<EarthQuakeDataModel>(); 
+	
+//	private ProgressBar mProgressBar;
+//	private RelativeLayout hPBarLayout;
 	
 	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_detail);
 		
-		webView = (WebView) findViewById(R.id.webView);
-		hPBarLayout = (RelativeLayout) findViewById(R.id.hPBarLayout);
-		mProgressBar = (ProgressBar) findViewById(R.id.legacy_navigation_progressBar);
+		listView = (ListView) findViewById(R.id.listView2);
+//		hPBarLayout = (RelativeLayout) findViewById(R.id.hPBarLayout);
+//		mProgressBar = (ProgressBar) findViewById(R.id.legacy_navigation_progressBar);
+		final String[] datos=new String[]{"elem1","elem2","elem3"}; 
+		//datos[1]=c.getstring(1);
+	
+		DataBaseClass dbInstance = new DataBaseClass(this);
+		SQLiteDatabase db = dbInstance.getReadableDatabase();
 		
-		webView.getSettings().setJavaScriptEnabled(true);
-		webView.getSettings().setBuiltInZoomControls(true);
-		
-		webView.setWebChromeClient(new WebChromeClient() {
-            public void onProgressChanged(WebView view, int progress)
-            {
-                mProgressBar.setProgress(progress);
-            }
-        });
-  
-        webView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl)
-            {
-                // Handle the error
-            }
-  
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url)
-            {
-                view.loadUrl(url);
-                return true;
-            }
-            
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon){
-            	hPBarLayout.setVisibility(View.VISIBLE);
-            	super.onPageStarted(view, url, favicon);
-            }
-            
-            @Override
-            public void onPageFinished(WebView view, String url){
-            	hPBarLayout.setVisibility(View.GONE);
-            	super.onPageFinished(view, url);
-            }
-        });
-		
-		webView.loadUrl(url);
-	}
+		Cursor c = db.rawQuery("SELECT * FROM alumnos LIMIT 7", null);
+		if(c.moveToFirst()){
+			do{
+			 EarthQuakeDataModel model = new EarthQuakeDataModel();
+			 model.title  = c.getString(1);
+			 model.magnitude = c.getString(2);
+			 model.location = c.getString(3);
+			 model.depth = c.getString(4);
+			 model.latitude = c.getString(5);
+			 model.longitude = c.getString(5);
+			 model.dateTime = c.getString(6);
+			 list.add(model);
+			} while (c.moveToNext());
+			}
+			c.close();
 
+			RssAdapter_details adapter = new RssAdapter_details(getApplicationContext(), R.string.app_name, list);
+			listView.setAdapter(adapter);
+		
+
+	}
 }
